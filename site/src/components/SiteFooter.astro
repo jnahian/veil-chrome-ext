@@ -1,0 +1,35 @@
+---
+import { Image } from 'astro:assets';
+import icon from '../../../extension/icons/icon128.png';
+import manifest from '../../../extension/manifest.json';
+import { REPO, base } from '../links';
+
+interface Props {
+  // Repository path of the page's Markdown source, for pages built from a file.
+  source?: string;
+}
+const { source } = Astro.props;
+const link = 'py-3 hover:text-ink';
+---
+
+<footer class="border-t border-line">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-7 gap-y-1 px-4 py-6 text-[15px] text-slate-ink sm:px-6 lg:px-8">
+    <span class="flex w-full items-center gap-2 py-2 font-bold text-ink sm:w-auto">
+      <Image src={icon} alt="" width={22} height={22} densities={[1, 2, 3]} class="rounded" />
+      Veil
+    </span>
+    <a href={`${base}/changelog/`} class={link}>Version {manifest.version}</a>
+    <a href={`${base}/docs/`} class={link}>Docs</a>
+    <a href={`${base}/privacy/`} class={link}>Privacy policy</a>
+    <a href={REPO} target="_blank" rel="noopener" class={link}>Source code</a>
+    <a href={`${REPO}/issues`} target="_blank" rel="noopener" class={link}>Support</a>
+    {
+      source && (
+        <a href={`${REPO}/blob/main/${source}`} target="_blank" rel="noopener" class={link}>
+          Edit this page on GitHub
+        </a>
+      )
+    }
+    <span class="py-3">MIT License</span>
+  </div>
+</footer>

@@ -1,19 +1,21 @@
 ---
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
-import icon from '../../../extension/icons/icon128.png';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import ChromeIcon from '../components/ChromeIcon.astro';
+import { REPO, DOWNLOAD, base } from '../links';
+import manifest from '../../../extension/manifest.json';
 import shotPanel from '../../../store/assets/screenshot-4-panel.png';
 import shotRules from '../../../store/assets/screenshot-5-rules.png';
 
-const REPO = 'https://github.com/jnahian/veil-chrome-ext';
-const DOWNLOAD = 'https://chromewebstore.google.com/detail/veil-hide-blur-rewrite/mmgidjpigbhdkdnmjhcbjhlbfhecddkc';
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { version } = manifest;
 
 const looks = [
   { value: 'off', label: 'Off', caption: 'Without Veil, everyone on the call sees this.' },
-  { value: 'mask', label: 'Mask', caption: 'Mask draws a solid bar over each match. The page itself does not change.' },
-  { value: 'hide', label: 'Hide', caption: 'Hide makes each match invisible and keeps its space.' },
-  { value: 'blur', label: 'Blur', caption: 'Blur softens each match. It can show clearly on hover, if you turn that on.' },
+  { value: 'mask', label: 'Mask', caption: 'A solid bar over each match. The page itself does not change.' },
+  { value: 'hide', label: 'Hide', caption: 'Each match turns invisible and keeps its space.' },
+  { value: 'blur', label: 'Blur', caption: 'Each match is blurred. You can let it show clearly on hover.' },
 ];
 
 const stats = [
@@ -37,6 +39,35 @@ const payout = [
   { label: 'Webhook server', value: '203.0.113.42' },
 ];
 
+// Covered values floating beside the headline. Positions are for xl screens, where they show.
+const floaters = [
+  { label: 'Balance', value: '$48,210.75', look: 'mask', pos: 'top-40 left-0 -rotate-3' },
+  { label: 'Secret key', value: 'sk_live_51Lumen…', look: 'blur', pos: 'top-80 left-10 rotate-2' },
+  { label: 'Email', value: 'maya@lumenbooks.example', look: 'mask', pos: 'top-[31rem] left-0 -rotate-1' },
+  { label: 'Card', value: '4242 4242 4242 4242', look: 'blur', pos: 'top-44 right-0 rotate-3' },
+  { label: 'IBAN', value: 'DE89 3704 0044 0532', look: 'mask', pos: 'top-[21rem] right-8 -rotate-2' },
+  { label: 'Webhook server', value: '203.0.113.42', look: 'blur', pos: 'top-[31rem] right-0 rotate-1' },
+];
+
+const moments = [
+  {
+    title: 'Demoing on a live account',
+    body: 'Show a customer the real dashboard without showing them another customer’s revenue, email or invoice.',
+  },
+  {
+    title: 'Recording a tutorial',
+    body: 'Cover the data before you hit record, instead of blurring it frame by frame in the video editor afterwards.',
+  },
+  {
+    title: 'Screenshots for a bug report',
+    body: 'Attach a screenshot of the broken page to a public issue without pasting a live API key into it.',
+  },
+  {
+    title: 'Pairing and streaming',
+    body: 'Debug in the browser with someone watching. Select keys, IPs and card numbers once, and they stay covered.',
+  },
+];
+
 const types = [
   { name: 'Money', example: '$1,240.50  ₹3 lakh', rule: 'Skips version numbers, years, percentages and phone numbers.' },
   { name: 'Emails', example: 'jane@example.com', rule: 'Needs a name, an @ and a domain.' },
@@ -49,12 +80,9 @@ const types = [
 ];
 
 const actions = [
-  {
-    title: 'Blur',
-    body: 'See the result while you drag the strength slider. You can have the element show clearly while you hover over it.',
-  },
+  { title: 'Blur', body: 'Drag the strength slider and watch the result. Optionally let it show clearly while you hover.' },
   { title: 'Hide', body: 'Keep the blank space, or remove the element so the page closes up around it.' },
-  { title: 'Replace text', body: "Type new text directly on the page. It keeps the site's font, size and color." },
+  { title: 'Replace text', body: 'Type directly on the page. The new text keeps the site’s font, size and color.' },
 ];
 
 const shortcuts = [
@@ -63,228 +91,294 @@ const shortcuts = [
   { keys: 'Alt+Shift+M', action: 'Show hidden data for a moment' },
 ];
 
-const description =
-  'A Chrome extension that masks money, emails, phone numbers, API keys and other sensitive data, and hides, blurs or rewrites any element on a page.';
-
-// Structured data that tells search engines and AI tools what Veil is.
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Veil',
-  alternateName: 'Veil: Hide, Blur & Rewrite',
-  description,
-  url: Astro.site,
-  applicationCategory: 'BrowserApplication',
-  operatingSystem: 'Chrome',
-  license: 'https://opensource.org/licenses/MIT',
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  downloadUrl: DOWNLOAD,
-  sameAs: [REPO],
-};
-
-const steps = [
-  'Open Veil on the Chrome Web Store and click Add to Chrome.',
-  'Pin Veil from the puzzle-piece menu.',
-  'Open a site, click the Veil icon, and click Pick an element.',
+const limits = [
+  'Veil hides data on screen only. The page’s own scripts can still read it.',
+  'It cannot reach iframes, canvas charts, images, or other sites’ shadow DOM components.',
+  'Text with a gradient fill cannot be masked.',
+  'On a slow page, data can flash before the first scan. Open the pages you plan to show before you share.',
 ];
 
-const h2 = 'text-4xl font-extrabold leading-[1.02] tracking-[-0.03em] text-balance sm:text-5xl';
+// Each answer is plain text so the FAQPage structured data matches the page word for word.
+const faqs = [
+  {
+    q: 'How do I hide sensitive information while screen sharing in Chrome?',
+    a: 'Install Veil, open the site you plan to share, click the Veil icon and turn on "Hide sensitive data on this site". Then select what to hide: money, emails, phone numbers, card numbers, IBANs, API keys or IP addresses. Veil covers every match on that site’s pages, including content that loads later.',
+  },
+  {
+    q: 'Does Veil send my data anywhere?',
+    a: 'No. Veil makes no network requests and has no analytics or remote code. Your rules stay in Chrome’s local storage on your device. The source code is public on GitHub under the MIT License, so you can check.',
+  },
+  {
+    q: 'Is Veil free?',
+    a: 'Yes. Veil is free and open source, with no account, no paid tier and no sign-up.',
+  },
+  {
+    q: 'Does Veil change the page or my data?',
+    a: 'The site’s data is never changed, and nothing is saved back to the site. Mask and hide are drawn over the text without touching the page’s HTML. Blur wraps each match in a small element so it can be blurred, and Replace text edits text in your browser only.',
+  },
+  {
+    q: 'Will Veil hide numbers that are not money, like dates or version numbers?',
+    a: 'Veil skips version numbers, years, percentages and phone numbers when it looks for money. Card numbers must pass the Luhn checksum and IBANs must pass the IBAN checksum, so random digit runs are left alone.',
+  },
+  {
+    q: 'Does Veil work inside iframes, charts and images?',
+    a: 'No. Veil works on the top-level page only. It cannot reach iframes, charts drawn on a canvas, images, or shadow DOM components from other sites. Pick the element around them and blur or hide it instead.',
+  },
+  {
+    q: 'How do I see the hidden data again?',
+    a: 'Press Alt+Shift+M to show it on the current tab, and press it again to hide it. Alt+Shift+X pauses all of Veil’s changes.',
+  },
+];
+
+const description =
+  'Veil is a free, open-source Chrome extension that hides money, emails, card numbers, API keys and other sensitive data on any website before you share your screen, record a demo or take a screenshot.';
+
+// Structured data that tells search engines and AI tools what Veil is.
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Veil',
+    alternateName: 'Veil: Hide, Blur & Rewrite',
+    description,
+    url: Astro.site,
+    applicationCategory: 'BrowserApplication',
+    operatingSystem: 'Chrome',
+    softwareVersion: version,
+    license: 'https://opensource.org/licenses/MIT',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    downloadUrl: DOWNLOAD,
+    sameAs: [REPO],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+
+const steps = [
+  { title: 'Add Veil to Chrome', body: 'Install it from the Chrome Web Store and pin it from the puzzle-piece menu.' },
+  { title: 'Turn it on for a site', body: 'Open the site, click the Veil icon, switch on Hide sensitive data, and select the types.' },
+  { title: 'Share your screen', body: 'Everything you selected is covered, on this visit and every visit after.' },
+];
+
+const h2 = 'text-[clamp(2.25rem,4.5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-balance';
 const lead = 'text-lg leading-relaxed text-slate-ink text-pretty';
+const eyebrow = 'font-mono text-sm font-medium tracking-wide text-brand uppercase';
 const primary =
-  'inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-deep focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-brand motion-reduce:transition-none';
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-deep focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-brand motion-reduce:transition-none';
+const primaryOnDark =
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-5 py-3 font-semibold text-deep transition-colors hover:bg-brand-light focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-white motion-reduce:transition-none';
+const ghostOnDark =
+  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-white/30 px-5 py-3 font-semibold text-white transition-colors hover:border-white focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-white motion-reduce:transition-none';
+const link = 'font-semibold text-brand underline underline-offset-3 hover:text-brand-deep';
 ---
 
-<Layout
-  title="Veil: hide private data before you share your screen"
-  {description}
->
+<Layout title="Veil: hide sensitive data when you share your screen" {description}>
   <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <header class="sticky top-0 z-10 border-b border-line bg-paper/85 backdrop-blur">
-    <nav class="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3 sm:px-6 lg:px-8">
-      <a href={`${base}/`} class="flex min-h-11 items-center gap-2.5 text-lg font-bold">
-        <Image src={icon} alt="" width={30} height={30} densities={[1, 2, 3]} loading="eager" class="rounded-md" />
-        Veil
-      </a>
-      <div class="ml-auto hidden items-center gap-7 text-slate-ink md:flex">
-        <a href="#demo" class="hover:text-ink">Demo</a>
-        <a href="#finds" class="hover:text-ink">What it hides</a>
-        <a href="#pick" class="hover:text-ink">Element picker</a>
-        <a href="#privacy" class="hover:text-ink">Privacy</a>
-        <a href="#install" class="hover:text-ink">Install</a>
-        <a href={REPO} target="_blank" rel="noopener" class="hover:text-ink">GitHub</a>
-      </div>
-      <a href={DOWNLOAD} target="_blank" rel="noopener" class:list={[primary, 'ml-auto px-4 py-2 text-[15px] md:ml-0']}>
-        Add to Chrome
-      </a>
-    </nav>
-  </header>
+  <SiteHeader />
 
-  <main>
-    <section class="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8 lg:pt-20">
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-        <h1
-          class="max-w-3xl text-[clamp(3rem,7vw,5.75rem)] leading-[0.96] font-extrabold tracking-[-0.04em] text-balance"
-        >
-          Share your screen, not your numbers.
-        </h1>
-        <div class="flex max-w-md flex-col gap-6 lg:pb-2">
-          <p class="text-lg leading-relaxed text-slate-ink text-pretty sm:text-xl">
-            Veil is a Chrome extension that covers money, emails, card numbers and API keys on any site before anyone
-            else sees them. Try it on the page below.
-          </p>
-          <div class="flex flex-col gap-3 sm:flex-row">
-            <a href={DOWNLOAD} target="_blank" rel="noopener" class={primary}>Add to Chrome</a>
-            <a
-              href={REPO} target="_blank" rel="noopener"
-              class="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#c9cfdc] px-5 py-3 font-semibold transition-colors hover:border-ink motion-reduce:transition-none"
-            >
-              View the source
-            </a>
-          </div>
-          <p class="text-[15px] text-slate-ink">Free and open source. No account, no tracking.</p>
+  <main id="main">
+    <section class="hero relative overflow-hidden bg-deep text-white">
+      <div class="hero-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8 lg:pt-24">
+        <div class="pointer-events-none absolute inset-x-8 top-0 hidden xl:block" aria-hidden="true">
+          {
+            floaters.map((f, i) => (
+              <div style={`animation-delay: ${i * -1.3}s`} class:list={['floater absolute flex w-52 flex-col gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)] backdrop-blur-sm', f.pos]}>
+                <span class="text-xs text-white/50">{f.label}</span>
+                <span class:list={['floater-value self-start truncate font-mono text-sm', f.look]}>{f.value}</span>
+              </div>
+            ))
+          }
         </div>
-      </div>
-
-      <div class="demo mt-12 lg:mt-14">
-        <div class="rounded-[20px] bg-ink p-2 shadow-[0_30px_60px_-30px_rgba(22,27,51,0.45)] sm:p-2.5">
-          <div class="flex items-center gap-3 px-2 pt-1.5 pb-3 text-sm text-[#d4d8e6] sm:px-3">
-            <span class="size-2.5 rounded-full bg-[#f0685b]"></span>
-            <span>You are sharing this tab</span>
-            <span class="ml-auto hidden rounded-md bg-[#2a3052] px-3 py-1 text-white sm:inline">Stop sharing</span>
+        <div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
+          <p class="rounded-full border border-white/20 px-3 py-1 font-mono text-xs whitespace-nowrap sm:px-3.5 sm:text-[13px] text-brand-light">
+            Free Chrome extension · Open source
+          </p>
+          <h1 class="text-[clamp(3rem,8vw,6rem)] leading-[0.94] font-extrabold tracking-[-0.045em] text-balance">
+            Share your screen, not your numbers.
+          </h1>
+          <p class="max-w-2xl text-lg leading-relaxed text-white/80 text-pretty sm:text-xl">
+            Veil is a Chrome extension that covers money, emails, card numbers and API keys on any website before you
+            share your screen, record a demo or take a screenshot. Turn it on once per site and it keeps working on every
+            visit. Nothing leaves your browser.
+          </p>
+          <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <a href={DOWNLOAD} target="_blank" rel="noopener" class={primaryOnDark}>
+              <ChromeIcon />
+              Add to Chrome, it’s free
+            </a>
+            <a href="#demo" class={ghostOnDark}>Watch the 23 second intro</a>
           </div>
-          <div class="flex flex-col overflow-hidden rounded-xl bg-white lg:flex-row" aria-label="Example billing page">
-            <div
-              class="hidden w-52 shrink-0 flex-col gap-1.5 border-r border-[#e6e9f0] bg-[#f7f8fb] px-5 py-6 text-[15px] text-slate-ink lg:flex"
-            >
-              <div class="mb-4 text-[17px] font-bold text-ink">Lumen Books</div>
-              <div class="px-2.5 py-2">Overview</div>
-              <div class="rounded-lg bg-[#e9ecf3] px-2.5 py-2 font-semibold text-ink">Billing</div>
-              <div class="px-2.5 py-2">Customers</div>
-              <div class="px-2.5 py-2">Settings</div>
+          <ul class="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[15px] text-white/70">
+            <li>No account</li>
+            <li aria-hidden="true" class="hidden sm:block">·</li>
+            <li>No network requests</li>
+            <li aria-hidden="true" class="hidden sm:block">·</li>
+            <li>MIT License</li>
+          </ul>
+        </div>
+
+        <div class="demo relative mt-12 pb-14 lg:mt-16 lg:pb-20">
+          <p class="mb-4 text-center font-mono text-sm text-brand-light">Try it: switch the style below</p>
+          <div class="rounded-[20px] bg-ink p-2 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)] ring-1 ring-white/10 sm:p-2.5">
+            <div class="flex items-center gap-3 px-2 pt-1.5 pb-3 text-sm text-[#d4d8e6] sm:px-3">
+              <span class="size-2.5 rounded-full bg-[#f0685b]"></span>
+              <span>You are sharing this tab</span>
+              <span class="ml-auto hidden rounded-md bg-[#2a3052] px-3 py-1 text-white sm:inline">Stop sharing</span>
             </div>
-            <div class="flex min-w-0 grow flex-col gap-5 p-4 tabular-nums sm:p-7">
-              <div class="text-2xl font-bold">Billing</div>
-              <div class="grid gap-3 sm:grid-cols-3 sm:gap-4">
-                {
-                  stats.map((s, i) => (
-                    <div class:list={["rounded-xl border border-[#e6e9f0] p-4", i > 0 && "hidden sm:block"]}>
-                      <div class="text-sm text-slate-ink">{s.label}</div>
-                      <div class="mt-2 text-2xl font-bold whitespace-nowrap">
-                        <span class="v">{s.value}</span>
+            <div class="flex flex-col overflow-hidden rounded-xl bg-white text-ink lg:flex-row" aria-label="Example billing page">
+              <div class="hidden w-52 shrink-0 flex-col gap-1.5 border-r border-[#e6e9f0] bg-[#f7f8fb] px-5 py-6 text-[15px] text-slate-ink lg:flex">
+                <div class="mb-4 text-[17px] font-bold text-ink">Lumen Books</div>
+                <div class="px-2.5 py-2">Overview</div>
+                <div class="rounded-lg bg-[#e9ecf3] px-2.5 py-2 font-semibold text-ink">Billing</div>
+                <div class="px-2.5 py-2">Customers</div>
+                <div class="px-2.5 py-2">Settings</div>
+              </div>
+              <div class="flex min-w-0 grow flex-col gap-5 p-4 text-left tabular-nums sm:p-7">
+                <div class="text-2xl font-bold">Billing</div>
+                <div class="grid gap-3 sm:grid-cols-3 sm:gap-4">
+                  {
+                    stats.map((s, i) => (
+                      <div class:list={['rounded-xl border border-[#e6e9f0] p-4', i > 0 && 'hidden sm:block']}>
+                        <div class="text-sm text-slate-ink">{s.label}</div>
+                        <div class="mt-2 text-2xl font-bold whitespace-nowrap">
+                          <span class="v">{s.value}</span>
+                        </div>
                       </div>
+                    ))
+                  }
+                </div>
+                <table class="w-full border-collapse text-[15px]">
+                  <thead>
+                    <tr class="border-b border-[#e6e9f0] text-left text-[13px] text-slate-ink">
+                      <th class="py-2 font-medium">Customer</th>
+                      <th class="hidden py-2 font-medium sm:table-cell">Invoice</th>
+                      <th class="hidden py-2 font-medium md:table-cell">Email</th>
+                      <th class="py-2 text-right font-medium">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      invoices.map((row) => (
+                        <tr class="border-b border-[#f0f2f6] last:border-0">
+                          <td class="py-3">{row.name}</td>
+                          <td class="hidden py-3 sm:table-cell">{row.id}</td>
+                          <td class="hidden py-3 md:table-cell">
+                            <span class="v">{row.email}</span>
+                          </td>
+                          <td class="py-3 text-right">
+                            <span class="v">{row.amount}</span>
+                          </td>
+                        </tr>
+                      ))
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <dl class="flex shrink-0 flex-col gap-4 border-t border-[#e6e9f0] p-4 text-left text-sm sm:p-7 lg:w-80 lg:border-t-0 lg:border-l">
+                <div class="text-[17px] font-bold">Payout details</div>
+                {
+                  payout.map((p) => (
+                    <div class="flex flex-col gap-1">
+                      <dt class="text-slate-ink">{p.label}</dt>
+                      <dd class="font-mono text-[15px] break-all">
+                        <span class="v">{p.value}</span>
+                      </dd>
                     </div>
                   ))
                 }
-              </div>
-              <table class="w-full border-collapse text-[15px]">
-                <thead>
-                  <tr class="border-b border-[#e6e9f0] text-left text-[13px] text-slate-ink">
-                    <th class="py-2 font-medium">Customer</th>
-                    <th class="hidden py-2 font-medium sm:table-cell">Invoice</th>
-                    <th class="hidden py-2 font-medium md:table-cell">Email</th>
-                    <th class="py-2 text-right font-medium">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {
-                    invoices.map((row) => (
-                      <tr class="border-b border-[#f0f2f6] last:border-0">
-                        <td class="py-3">{row.name}</td>
-                        <td class="hidden py-3 sm:table-cell">{row.id}</td>
-                        <td class="hidden py-3 md:table-cell">
-                          <span class="v">{row.email}</span>
-                        </td>
-                        <td class="py-3 text-right">
-                          <span class="v">{row.amount}</span>
-                        </td>
-                      </tr>
-                    ))
-                  }
-                </tbody>
-              </table>
+              </dl>
             </div>
-            <dl
-              class="flex shrink-0 flex-col gap-4 border-t border-[#e6e9f0] p-4 text-sm sm:p-7 lg:w-80 lg:border-t-0 lg:border-l"
-            >
-              <div class="text-[17px] font-bold">Payout details</div>
+          </div>
+
+          <div class="mt-5 flex flex-col items-center gap-3">
+            <fieldset class="grid w-full grid-cols-4 gap-1 rounded-full bg-white/10 p-1 sm:flex sm:w-auto">
+              <legend class="sr-only">How Veil covers the data</legend>
               {
-                payout.map((p) => (
-                  <div class="flex flex-col gap-1">
-                    <dt class="text-slate-ink">{p.label}</dt>
-                    <dd class="font-mono text-[15px] break-all">
-                      <span class="v">{p.value}</span>
-                    </dd>
-                  </div>
+                looks.map((l) => (
+                  <label class="flex min-h-11 cursor-pointer items-center justify-center rounded-full px-5 font-semibold text-white/75 transition-colors hover:text-white has-checked:bg-white has-checked:text-deep has-focus-visible:outline-3 has-focus-visible:outline-white motion-reduce:transition-none">
+                    <input type="radio" name="look" value={l.value} checked={l.value === 'mask'} class="sr-only" />
+                    {l.label}
+                  </label>
                 ))
               }
-            </dl>
+            </fieldset>
+            <div class="grid max-w-xl">
+              {
+                looks.map((l) => (
+                  <p data-caption={l.value} class="col-start-1 row-start-1 text-center text-balance text-white/80">
+                    {l.caption}
+                  </p>
+                ))
+              }
+            </div>
           </div>
-        </div>
-
-        <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-7">
-          <fieldset class="grid grid-cols-4 gap-1 rounded-xl bg-[#e6e9f0] p-1 sm:flex">
-            <legend class="sr-only">How Veil covers the data</legend>
-            {
-              looks.map((l) => (
-                <label class="flex min-h-11 cursor-pointer items-center justify-center rounded-[9px] px-5 font-semibold text-slate-ink transition-colors has-checked:bg-white has-checked:text-ink has-checked:shadow-sm has-focus-visible:outline-3 has-focus-visible:outline-brand motion-reduce:transition-none">
-                  <input type="radio" name="look" value={l.value} checked={l.value === 'mask'} class="sr-only" />
-                  {l.label}
-                </label>
-              ))
-            }
-          </fieldset>
-          {
-            looks.map((l) => (
-              <p data-caption={l.value} class="text-slate-ink">
-                {l.caption}
-              </p>
-            ))
-          }
         </div>
       </div>
     </section>
 
-    <section
-      id="demo"
-      class="mx-auto flex max-w-5xl scroll-mt-20 flex-col gap-6 px-4 pt-24 sm:px-6 lg:px-8 lg:pt-36"
-    >
-      <div class="flex flex-col gap-5">
-        <h2 class={h2}>Watch Veil in action.</h2>
-        <p class:list={[lead, 'max-w-2xl']}>
-          Twenty-three seconds of a billing page going from fully exposed to covered, then a blurred avatar. It has
-          narration, so turn your sound on.
+    <section class="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8 lg:pt-28">
+      <div class="flex max-w-3xl flex-col gap-4">
+        <p class={eyebrow}>When you need it</p>
+        <h2 class={h2}>One wrong tab can leak a customer’s data.</h2>
+        <p class={lead}>
+          It takes a second on a call: you switch to the admin panel and the whole room sees a client’s balance or a live
+          secret key. Veil covers it before anyone sees it.
+        </p>
+      </div>
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          moments.map((m) => (
+            <li class="flex flex-col gap-3 rounded-2xl border border-line bg-white p-6">
+              <h3 class="text-lg font-bold">{m.title}</h3>
+              <p class="leading-relaxed text-slate-ink">{m.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="demo" class="mx-auto grid max-w-7xl scroll-mt-20 items-center gap-10 px-4 pt-20 sm:px-6 lg:grid-cols-12 lg:gap-6 lg:px-8 lg:pt-28">
+      <div class="flex flex-col gap-4 lg:col-span-4">
+        <p class={eyebrow}>23 second intro</p>
+        <h2 class={h2}>See it cover a billing page.</h2>
+        <p class={lead}>
+          A billing page goes from fully exposed to covered, switches between mask, blur and hide, then blurs an avatar.
+          It has narration, so turn your sound on.
+        </p>
+        <p class={lead}>
+          For the full tour, watch the <a href="https://youtu.be/-tR-An6twFQ" target="_blank" rel="noopener" class={link}>walkthrough on YouTube</a>.
         </p>
       </div>
       <video
-        class="aspect-video w-full overflow-hidden rounded-2xl border border-line bg-ink"
+        class="aspect-video w-full overflow-hidden rounded-2xl border border-line bg-ink lg:col-span-7 lg:col-start-6"
         src={`${base}/veil-intro.mp4`}
         poster={`${base}/veil-intro.jpg`}
         controls
         playsinline
         preload="metadata"
         aria-label="Veil covers the money, emails and API keys on a billing page, switches between mask, blur and hide, then blurs an avatar picked with the element picker"></video>
-      <p class:list={[lead, 'max-w-2xl']}>
-        Want the detail? The <a href="https://youtu.be/-tR-An6twFQ" target="_blank" rel="noopener" class="font-semibold text-brand underline hover:text-brand-deep">full walkthrough on YouTube</a> covers
-        hiding sensitive data on a site, picking an element, and managing your rules.
-      </p>
     </section>
 
-    <section
-      id="finds"
-      class="mx-auto grid max-w-7xl scroll-mt-20 gap-10 px-4 pt-24 sm:px-6 lg:grid-cols-12 lg:gap-6 lg:px-8 lg:pt-36"
-    >
-      <div class="flex flex-col gap-5 lg:col-span-4">
-        <h2 class={h2}>Turn it on once. Veil finds the rest.</h2>
+    <section id="finds" class="mx-auto grid max-w-7xl scroll-mt-20 gap-10 px-4 pt-20 sm:px-6 lg:grid-cols-12 lg:gap-6 lg:px-8 lg:pt-28">
+      <div class="flex flex-col gap-4 lg:sticky lg:top-28 lg:col-span-4 lg:self-start">
+        <p class={eyebrow}>Automatic</p>
+        <h2 class={h2}>What does Veil hide?</h2>
         <p class={lead}>
-          Switch on sensitive data for a site, and Veil covers every match on its pages, including content that loads
-          later. Money is on by default. Choose the other types in the popup.
+          Turn on sensitive data for a site and pick the types. Veil covers every match on the site’s pages, including
+          content that loads later. Money is selected to start with.
         </p>
-        <p class={lead}>Press <kbd>Alt+Shift+M</kbd> to show the data again on the current tab.</p>
+        <p class={lead}>Checksums and known formats cut false matches, so most dates, years and version numbers stay visible.</p>
       </div>
       <dl class="lg:col-span-7 lg:col-start-6">
-        <div
-          class="hidden border-b border-[#c9cfdc] pb-3 text-sm font-medium text-slate-ink sm:grid sm:grid-cols-[10rem_16rem_1fr] sm:gap-4"
-        >
+        <div class="hidden border-b border-[#c9cfdc] pb-3 text-sm font-medium text-slate-ink sm:grid sm:grid-cols-[10rem_16rem_1fr] sm:gap-4">
           <span>Type</span><span>Example</span><span>How Veil avoids false matches</span>
         </div>
         {
@@ -299,12 +393,15 @@ const primary =
       </dl>
     </section>
 
-    <section id="pick" class="mx-auto flex max-w-7xl scroll-mt-20 flex-col gap-14 px-4 pt-24 sm:px-6 lg:gap-20 lg:px-8 lg:pt-36">
-      <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-        <h2 class:list={[h2, 'max-w-xl']}>For everything else, point at it.</h2>
+    <section id="pick" class="mx-auto flex max-w-7xl scroll-mt-20 flex-col gap-14 px-4 pt-20 sm:px-6 lg:gap-20 lg:px-8 lg:pt-28">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+        <div class="flex max-w-xl flex-col gap-4">
+          <p class={eyebrow}>Manual</p>
+          <h2 class={h2}>For everything else, point at it.</h2>
+        </div>
         <p class:list={[lead, 'max-w-lg']}>
-          Names, addresses and customer photos have no reliable format. Pick them yourself: click the toolbar icon,
-          press <kbd>Alt+Shift+V</kbd>, or right-click and choose Veil this element.
+          Names, addresses and customer photos have no fixed format. Pick them yourself: click the toolbar icon, press
+          <kbd>Alt+Shift+V</kbd>, or right-click and choose Veil this element.
         </p>
       </div>
 
@@ -312,14 +409,14 @@ const primary =
         <Image
           src={shotPanel}
           alt="The Veil panel next to a selected avatar, with the Blur strength slider open"
-          class="w-full rounded-2xl border border-line lg:col-span-7"
+          class="w-full rounded-2xl border border-line shadow-[0_30px_60px_-40px_rgba(22,27,51,0.5)] lg:col-span-7"
           widths={[640, 1280]}
           sizes="(min-width: 1280px) 700px, 100vw"
         />
         <div class="flex flex-col gap-8 lg:col-span-4 lg:col-start-9">
           {
             actions.map((a) => (
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2 border-l-2 border-brand pl-5">
                 <h3 class="text-2xl font-bold">{a.title}</h3>
                 <p class="leading-relaxed text-slate-ink">{a.body}</p>
               </div>
@@ -330,16 +427,16 @@ const primary =
 
       <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-6">
         <div class="flex flex-col gap-3 lg:col-span-4">
-          <h3 class="text-3xl leading-tight font-extrabold tracking-[-0.02em]">Your changes come back on every visit</h3>
+          <h3 class="text-3xl leading-tight font-extrabold tracking-[-0.02em]">Set it once. It’s there on every visit.</h3>
           <p class="leading-relaxed text-slate-ink">
-            Apply a change to one page or to the whole site. Veil applies it again when the page loads, also on
+            Apply a change to one page or the whole site. Veil applies it again whenever the page loads, including on
             single-page apps. Turn rules on and off from the popup, and undo any save for 5 seconds.
           </p>
         </div>
         <Image
           src={shotRules}
           alt="The Veil popup listing three rules for the current page"
-          class="w-full rounded-2xl border border-line lg:col-span-7 lg:col-start-6"
+          class="w-full rounded-2xl border border-line shadow-[0_30px_60px_-40px_rgba(22,27,51,0.5)] lg:col-span-7 lg:col-start-6"
           widths={[640, 1280]}
           sizes="(min-width: 1280px) 700px, 100vw"
         />
@@ -365,79 +462,90 @@ const primary =
       </div>
     </section>
 
-    <section id="privacy" class="mt-24 scroll-mt-20 bg-ink py-16 text-white sm:py-24 lg:mt-36 lg:py-28">
+    <section id="privacy" class="mt-20 scroll-mt-20 bg-deep py-16 text-white sm:py-24 lg:mt-28 lg:py-28">
       <div class="mx-auto flex max-w-7xl flex-col gap-10 px-4 sm:px-6 lg:gap-14 lg:px-8">
-        <h2 class="max-w-4xl text-[clamp(2.5rem,5vw,4rem)] leading-none font-extrabold tracking-[-0.035em] text-balance">
-          Veil makes no network requests.
-        </h2>
-        <div class="grid gap-6 border-t border-ink-line pt-8 sm:grid-cols-3">
+        <div class="flex max-w-4xl flex-col gap-4">
+          <p class="font-mono text-sm font-medium tracking-wide text-brand-light uppercase">Privacy</p>
+          <h2 class="text-[clamp(2.5rem,5vw,4rem)] leading-none font-extrabold tracking-[-0.035em] text-balance">
+            A privacy tool that makes zero network requests.
+          </h2>
+        </div>
+        <div class="grid gap-6 border-t border-white/15 pt-8 sm:grid-cols-3">
           <div>
             <h3 class="text-lg font-bold text-brand-light sm:text-xl">Nothing leaves your browser</h3>
-            <p class="mt-2 leading-relaxed text-[#c3c8db]">No analytics, no tracking and no remote code.</p>
+            <p class="mt-2 leading-relaxed text-white/75">No analytics, no tracking and no remote code.</p>
           </div>
           <div>
             <h3 class="text-lg font-bold text-brand-light sm:text-xl">Your rules stay on your device</h3>
-            <p class="mt-2 leading-relaxed text-[#c3c8db]">Export them to a file when you want to move them.</p>
+            <p class="mt-2 leading-relaxed text-white/75">Export them to a JSON file when you want to move them.</p>
           </div>
           <div>
-            <h3 class="text-lg font-bold text-brand-light sm:text-xl">Open source</h3>
-            <p class="mt-2 leading-relaxed text-[#c3c8db]">Read every line on GitHub. Released under the MIT License.</p>
+            <h3 class="text-lg font-bold text-brand-light sm:text-xl">Check every line yourself</h3>
+            <p class="mt-2 leading-relaxed text-white/75">
+              The source is on <a href={REPO} target="_blank" rel="noopener" class="text-white underline">GitHub</a> under the MIT License.
+            </p>
           </div>
         </div>
-        <div class="max-w-3xl rounded-2xl border border-ink-line p-5 sm:p-7">
+        <div class="max-w-3xl rounded-2xl border border-white/15 bg-white/5 p-5 sm:p-7">
           <h3 class="font-bold sm:text-lg">What Veil cannot do</h3>
-          <p class="mt-2 leading-relaxed text-[#c3c8db]">
-            Veil hides data visually only. The page's own scripts can still read it. Veil cannot reach data inside
-            iframes, canvas charts or images. Read the{' '}
+          <ul class="mt-3 flex flex-col gap-2 leading-relaxed text-white/75">
+            {limits.map((l) => <li class="flex gap-3"><span aria-hidden="true" class="text-brand-light">–</span>{l}</li>)}
+          </ul>
+          <p class="mt-4 text-white/75">
+            See <a href={`${base}/docs/#known-limits`} class="text-white underline">all known limits</a> and the
             <a href={`${base}/privacy/`} class="text-white underline">privacy policy</a>.
           </p>
         </div>
       </div>
     </section>
 
-    <section id="install" class="mx-auto flex max-w-7xl scroll-mt-20 flex-col gap-10 px-4 py-20 sm:px-6 lg:gap-12 lg:px-8 lg:py-28">
-      <h2 class={h2}>Install Veil</h2>
-      <ol class="grid gap-6 sm:grid-cols-3">
+    <section id="faq" class="mx-auto grid max-w-7xl scroll-mt-20 gap-10 px-4 pt-20 sm:px-6 lg:grid-cols-12 lg:gap-6 lg:px-8 lg:pt-28">
+      <div class="flex flex-col gap-4 lg:col-span-4">
+        <p class={eyebrow}>FAQ</p>
+        <h2 class={h2}>Questions, answered.</h2>
+        <p class={lead}>
+          Every feature is in the <a href={`${base}/docs/`} class={link}>documentation</a>. Something else?
+          <a href={`${REPO}/issues`} target="_blank" rel="noopener" class={link}>Open an issue on GitHub</a>.
+        </p>
+      </div>
+      <div class="divide-y divide-line border-y border-line lg:col-span-7 lg:col-start-6">
         {
-          steps.map((step, i) => (
-            <li class="flex gap-4 border-t-2 border-ink pt-4 sm:flex-col sm:gap-3.5 sm:pt-5">
-              <span class="w-6 shrink-0 text-3xl leading-none font-extrabold text-brand sm:text-[44px]">{i + 1}</span>
-              <p class="leading-relaxed">
-                {i === 0 ? (
-                  <>
-                    Open Veil on the{' '}
-                    <a href={DOWNLOAD} target="_blank" rel="noopener" class="font-semibold text-brand underline hover:text-brand-deep">
-                      Chrome Web Store
-                    </a>{' '}
-                    and click Add to Chrome.
-                  </>
-                ) : (
-                  step
-                )}
-              </p>
-            </li>
+          faqs.map((f) => (
+            <details class="group">
+              <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+                <h3>{f.q}</h3>
+                <svg viewBox="0 0 24 24" class="size-5 shrink-0 text-brand transition-transform group-open:rotate-45 motion-reduce:transition-none" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </summary>
+              <p class="max-w-2xl pb-6 leading-relaxed text-slate-ink">{f.a}</p>
+            </details>
           ))
         }
-      </ol>
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
-        <a href={DOWNLOAD} target="_blank" rel="noopener" class={primary}>Add to Chrome</a>
-        <span class="text-[15px] text-slate-ink">
-          Chrome keeps Veil up to date on its own.
-        </span>
+      </div>
+    </section>
+
+    <section id="install" class="mx-auto max-w-7xl scroll-mt-20 px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+      <div class="flex flex-col gap-10 rounded-3xl bg-deep p-6 text-white sm:p-10 lg:gap-12 lg:p-14">
+        <h2 class={h2}>Ready before your next call.</h2>
+        <ol class="grid gap-6 sm:grid-cols-3">
+          {
+            steps.map((s, i) => (
+              <li class="flex gap-4 border-t border-white/20 pt-4 sm:flex-col sm:gap-3 sm:pt-5">
+                <span class="w-6 shrink-0 font-mono text-3xl leading-none font-medium text-brand-light sm:text-4xl">{i + 1}</span>
+                <div>
+                  <h3 class="font-bold">{s.title}</h3>
+                  <p class="mt-1 leading-relaxed text-white/75">{s.body}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+          <a href={DOWNLOAD} target="_blank" rel="noopener" class={primaryOnDark}>Add to Chrome, it’s free</a>
+          <span class="text-[15px] text-white/70">Chrome keeps Veil up to date on its own.</span>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer class="border-t border-line">
-    <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-7 gap-y-1 px-4 py-6 text-[15px] text-slate-ink sm:px-6 lg:px-8">
-      <span class="flex w-full items-center gap-2 py-2 font-bold text-ink sm:w-auto">
-        <Image src={icon} alt="" width={22} height={22} densities={[1, 2, 3]} class="rounded" />
-        Veil
-      </span>
-      <span class="py-3">MIT License</span>
-      <a href={`${base}/privacy/`} class="py-3 hover:text-ink">Privacy policy</a>
-      <a href={`${base}/changelog/`} class="py-3 hover:text-ink">Changelog</a>
-      <a href={`${REPO}/issues`} target="_blank" rel="noopener" class="py-3 hover:text-ink">Support</a>
-    </div>
-  </footer>
+  <SiteFooter />
 </Layout>

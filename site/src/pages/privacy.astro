@@ -1,12 +1,13 @@
 ---
 import Doc from '../layouts/Doc.astro';
-import { Content } from '../../../PRIVACY.md';
+import { Content, getHeadings } from '../../../PRIVACY.md';
 ---
 
 <Doc
   title="Privacy policy: Veil"
   description="Veil saves your rules on your device, makes no network requests, and does not send or sell any data."
   source="PRIVACY.md"
+  headings={getHeadings()}
 >
   <Content />
 </Doc>

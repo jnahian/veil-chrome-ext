@@ -1,0 +1,13 @@
+---
+import Doc from '../layouts/Doc.astro';
+import { Content, getHeadings } from '../content/docs.md';
+---
+
+<Doc
+  title="Documentation: Veil"
+  description="How to use Veil: hide sensitive data on a site, pick and blur, hide or rewrite any element, manage rules, shortcuts and known limits."
+  source="site/src/content/docs.md"
+  headings={getHeadings()}
+>
+  <Content />
+</Doc>

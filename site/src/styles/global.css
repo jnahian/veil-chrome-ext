@@ -10,12 +10,50 @@
   --color-brand: #0f766e;
   --color-brand-deep: #115e59;
   --color-brand-light: #7dd8cc;
+  --color-deep: #0b3b37;
   --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Deep teal glow behind the hero, like the store promo tile. */
+.hero {
+  background-image: radial-gradient(60rem 40rem at 20% -10%, #14706a 0%, transparent 60%),
+    radial-gradient(50rem 30rem at 100% 100%, #062825 0%, transparent 70%);
+}
+
+/* Faint dot grid that fades out toward the demo. */
+.hero-grid {
+  background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black, transparent);
+}
+
+/* Cards beside the hero headline drift slowly. Translate is separate from their rotate class. */
+.floater {
+  animation: floater 7s ease-in-out infinite;
+}
+@keyframes floater {
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+/* Values beside the hero headline, drawn covered the way Veil covers them. */
+.floater-value {
+  max-width: 100%;
+  border-radius: 4px;
+}
+.floater-value.mask {
+  background: var(--color-mask);
+  color: transparent;
+}
+.floater-value.blur {
+  color: rgb(255 255 255 / 0.85);
+  filter: blur(5px);
 }
 
 kbd {
@@ -48,14 +86,15 @@ kbd {
 .demo:has(input[value="blur"]:checked) .v:not(:hover) {
   filter: blur(6px);
 }
+/* All captions share one grid cell, so the row keeps the tallest one's height and nothing moves. */
 .demo [data-caption] {
-  display: none;
+  visibility: hidden;
 }
 .demo:has(input[value="off"]:checked) [data-caption="off"],
 .demo:has(input[value="mask"]:checked) [data-caption="mask"],
 .demo:has(input[value="hide"]:checked) [data-caption="hide"],
 .demo:has(input[value="blur"]:checked) [data-caption="blur"] {
-  display: block;
+  visibility: visible;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -64,5 +103,8 @@ kbd {
   }
   .demo .v {
     transition: none;
+  }
+  .floater {
+    animation: none;
   }
 }
