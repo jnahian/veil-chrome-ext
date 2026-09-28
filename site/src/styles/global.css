@@ -86,14 +86,15 @@ kbd {
 .demo:has(input[value="blur"]:checked) .v:not(:hover) {
   filter: blur(6px);
 }
+/* All captions share one grid cell, so the row keeps the tallest one's height and nothing moves. */
 .demo [data-caption] {
-  display: none;
+  visibility: hidden;
 }
 .demo:has(input[value="off"]:checked) [data-caption="off"],
 .demo:has(input[value="mask"]:checked) [data-caption="mask"],
 .demo:has(input[value="hide"]:checked) [data-caption="hide"],
 .demo:has(input[value="blur"]:checked) [data-caption="blur"] {
-  display: block;
+  visibility: visible;
 }
 
 @media (prefers-reduced-motion: reduce) {
