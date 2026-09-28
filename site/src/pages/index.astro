@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import ChromeIcon from '../components/ChromeIcon.astro';
 import { REPO, DOWNLOAD, base } from '../links';
 import manifest from '../../../extension/manifest.json';
 import shotPanel from '../../../store/assets/screenshot-4-panel.png';
@@ -160,11 +161,11 @@ const h2 = 'text-[clamp(2.25rem,4.5vw,3.5rem)] font-extrabold leading-[1.02] tra
 const lead = 'text-lg leading-relaxed text-slate-ink text-pretty';
 const eyebrow = 'font-mono text-sm font-medium tracking-wide text-brand uppercase';
 const primary =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-deep focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-brand motion-reduce:transition-none';
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-deep focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-brand motion-reduce:transition-none';
 const primaryOnDark =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-deep transition-colors hover:bg-brand-light focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-white motion-reduce:transition-none';
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-5 py-3 font-semibold text-deep transition-colors hover:bg-brand-light focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-white motion-reduce:transition-none';
 const ghostOnDark =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-white/30 px-5 py-3 font-semibold text-white transition-colors hover:border-white focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-white motion-reduce:transition-none';
+  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-white/30 px-5 py-3 font-semibold text-white transition-colors hover:border-white focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-white motion-reduce:transition-none';
 const link = 'font-semibold text-brand underline underline-offset-3 hover:text-brand-deep';
 ---
 
@@ -189,7 +190,7 @@ const link = 'font-semibold text-brand underline underline-offset-3 hover:text-b
           </p>
           <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <a href={DOWNLOAD} target="_blank" rel="noopener" class={primaryOnDark}>
-              <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.5M9 13.8 4.8 6.3M15 13.8l-4.3 7.4"/></svg>
+              <ChromeIcon />
               Add to Chrome, it’s free
             </a>
             <a href="#demo" class={ghostOnDark}>Watch the 23 second intro</a>
@@ -277,11 +278,11 @@ const link = 'font-semibold text-brand underline underline-offset-3 hover:text-b
           </div>
 
           <div class="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
-            <fieldset class="grid w-full grid-cols-4 gap-1 rounded-xl bg-white/10 p-1 sm:flex sm:w-auto">
+            <fieldset class="grid w-full grid-cols-4 gap-1 rounded-full bg-white/10 p-1 sm:flex sm:w-auto">
               <legend class="sr-only">How Veil covers the data</legend>
               {
                 looks.map((l) => (
-                  <label class="flex min-h-11 cursor-pointer items-center justify-center rounded-[9px] px-5 font-semibold text-white/75 transition-colors hover:text-white has-checked:bg-white has-checked:text-deep has-focus-visible:outline-3 has-focus-visible:outline-white motion-reduce:transition-none">
+                  <label class="flex min-h-11 cursor-pointer items-center justify-center rounded-full px-5 font-semibold text-white/75 transition-colors hover:text-white has-checked:bg-white has-checked:text-deep has-focus-visible:outline-3 has-focus-visible:outline-white motion-reduce:transition-none">
                     <input type="radio" name="look" value={l.value} checked={l.value === 'mask'} class="sr-only" />
                     {l.label}
                   </label>
