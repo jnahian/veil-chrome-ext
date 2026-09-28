@@ -6,3 +6,5 @@ dist/
 brag-output*/
 store/demo/
 .DS_Store
+.agents/
+skills-lock.json
