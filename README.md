@@ -1,6 +1,6 @@
 # Veil: Hide, Blur & Rewrite
 
-Website: <https://veil-ce.jnahian.me/>
+Website: <https://veil-ce.jnahian.me/> · [Documentation](https://veil-ce.jnahian.me/docs/) · [Changelog](https://veil-ce.jnahian.me/changelog/)
 
 [![The Veil logo above the line "Share your screen, not your numbers."](site/public/veil-intro.jpg)](https://youtu.be/MSykGjktihY)
 

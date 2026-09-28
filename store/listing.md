@@ -29,7 +29,7 @@ Turn it on once for a site, and Veil covers every match on its pages, including 
 
 Choose how matches look:
 • Mask: a solid bar. The page itself does not change.
-• Blur: blurred, and clear while you hover.
+• Blur: blurred, and optionally clear while you hover.
 • Hide: invisible, with the space kept.
 
 HIDE, BLUR OR REWRITE ANY ELEMENT
