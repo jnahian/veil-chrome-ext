@@ -1,14 +1,18 @@
 # Veil
 
-> Veil is a free, open-source Chrome extension. It hides money, emails, phone numbers, card numbers, IBANs, API keys and IP addresses on any web page before you share your screen. It can also hide, blur or rewrite any element that you pick on a page. Veil keeps your rules on your device and makes no network requests.
+> Veil is a free, open-source Chrome extension that hides money, emails, phone numbers, card numbers, IBANs, API keys and IP addresses on any website before you share your screen, record a demo or take a screenshot. It can also hide, blur or rewrite any element that you pick on a page. Veil keeps your rules on your device and makes no network requests.
 
-Veil adds a mask, a blur or a hidden style to each match that it finds on a page. The page itself does not change. You can add your own words or regular expressions as extra types. Rules for picked elements apply to one page or to a whole site, and they come back on every visit. Keyboard shortcuts: Alt+Shift+V picks an element, Alt+Shift+X pauses or resumes all changes, and Alt+Shift+M shows hidden data for a moment.
+Veil adds a mask, a blur or a hidden style to each match that it finds on a page. The page itself does not change. Card numbers must pass the Luhn checksum and IBANs the IBAN checksum, and money detection skips version numbers, years, percentages and phone numbers. You can add your own words or regular expressions as extra types. Rules for picked elements apply to one page or to a whole site, and they come back on every visit. Keyboard shortcuts: Alt+Shift+V picks an element, Alt+Shift+X pauses or resumes all changes, and Alt+Shift+M shows hidden data for a moment.
 
-You install Veil from the Chrome Web Store.
+Common uses: demoing a product on a live account, recording tutorials, taking screenshots for bug reports, and screen sharing while pairing or streaming.
+
+Limits: Veil hides data on screen only, and the page's own scripts can still read it. It does not work inside iframes, canvas charts, images or other sites' shadow DOM components, and it cannot mask text with a gradient fill.
+
+You install Veil from the Chrome Web Store. It is free, with no account.
 
 ## Pages
 
-- [Home page](https://veil-ce.jnahian.me/): Features, a live demo and install steps
+- [Home page](https://veil-ce.jnahian.me/): Features, a live demo, use cases, FAQ and install steps
 - [Privacy policy](https://veil-ce.jnahian.me/privacy/): What Veil stores and what it does not send
 - [Changelog](https://veil-ce.jnahian.me/changelog/): Changes in each version
 
