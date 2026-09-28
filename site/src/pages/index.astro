@@ -39,6 +39,16 @@ const payout = [
   { label: 'Webhook server', value: '203.0.113.42' },
 ];
 
+// Covered values floating beside the headline. Positions are for xl screens, where they show.
+const floaters = [
+  { label: 'Balance', value: '$48,210.75', look: 'mask', pos: 'top-40 left-0 -rotate-3' },
+  { label: 'Secret key', value: 'sk_live_51Lumen…', look: 'blur', pos: 'top-80 left-10 rotate-2' },
+  { label: 'Email', value: 'maya@lumenbooks.example', look: 'mask', pos: 'top-[31rem] left-0 -rotate-1' },
+  { label: 'Card', value: '4242 4242 4242 4242', look: 'blur', pos: 'top-44 right-0 rotate-3' },
+  { label: 'IBAN', value: 'DE89 3704 0044 0532', look: 'mask', pos: 'top-[21rem] right-8 -rotate-2' },
+  { label: 'Webhook server', value: '203.0.113.42', look: 'blur', pos: 'top-[31rem] right-0 rotate-1' },
+];
+
 const moments = [
   {
     title: 'Demoing on a live account',
@@ -175,7 +185,18 @@ const link = 'font-semibold text-brand underline underline-offset-3 hover:text-b
 
   <main id="main">
     <section class="hero relative overflow-hidden bg-deep text-white">
-      <div class="mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8 lg:pt-24">
+      <div class="hero-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8 lg:pt-24">
+        <div class="pointer-events-none absolute inset-x-8 top-0 hidden xl:block" aria-hidden="true">
+          {
+            floaters.map((f, i) => (
+              <div style={`animation-delay: ${i * -1.3}s`} class:list={['floater absolute flex w-52 flex-col gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)] backdrop-blur-sm', f.pos]}>
+                <span class="text-xs text-white/50">{f.label}</span>
+                <span class:list={['floater-value self-start truncate font-mono text-sm', f.look]}>{f.value}</span>
+              </div>
+            ))
+          }
+        </div>
         <div class="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
           <p class="rounded-full border border-white/20 px-3.5 py-1 font-mono text-[13px] text-brand-light">
             Free Chrome extension · Open source
