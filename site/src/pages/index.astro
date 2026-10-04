@@ -93,7 +93,7 @@ const shortcuts = [
 
 const limits = [
   'Veil hides data on screen only. The page’s own scripts can still read it.',
-  'It cannot reach iframes, canvas charts, images, or other sites’ shadow DOM components.',
+  'It cannot reach canvas charts, images, or other sites’ shadow DOM components.',
   'Text with a gradient fill cannot be masked.',
   'On a slow page, data can flash before the first scan. Open the pages you plan to show before you share.',
 ];
@@ -122,7 +122,7 @@ const faqs = [
   },
   {
     q: 'Does Veil work inside iframes, charts and images?',
-    a: 'No. Veil works on the top-level page only. It cannot reach iframes, charts drawn on a canvas, images, or shadow DOM components from other sites. Pick the element around them and blur or hide it instead.',
+    a: 'Iframes, yes: pick, blur, hide and rewrite work inside embedded content too. Charts drawn on a canvas, images, and shadow DOM components from other sites, no. Pick the element around them and blur or hide it instead.',
   },
   {
     q: 'How do I see the hidden data again?',
