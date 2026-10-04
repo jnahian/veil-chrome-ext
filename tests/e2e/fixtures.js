@@ -7,19 +7,23 @@ const { test: base, expect, chromium } = require('@playwright/test');
 const EXTENSION = path.resolve(__dirname, '../../extension');
 const PAGES = path.join(__dirname, 'pages');
 const HOST = 'veil.test';
+// A second origin, for pages that embed a cross-origin iframe.
+const EMBED_HOST = 'embed.test';
 
 const test = base.extend({
   // A fresh Chromium profile with Veil loaded. Pages under http://veil.test/
-  // are served from tests/e2e/pages, so no web server is needed.
+  // and http://embed.test/ are served from tests/e2e/pages, so no web server is needed.
   context: async ({}, use) => {
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`],
     });
-    await context.route(`http://${HOST}/**`, (route) => {
-      const name = new URL(route.request().url()).pathname.slice(1);
-      return route.fulfill({ path: path.join(PAGES, name) });
-    });
+    for (const host of [HOST, EMBED_HOST]) {
+      await context.route(`http://${host}/**`, (route) => {
+        const name = new URL(route.request().url()).pathname.slice(1);
+        return route.fulfill({ path: path.join(PAGES, name) });
+      });
+    }
     await use(context);
     await context.close();
   },
@@ -108,4 +112,4 @@ const dataConfig = (patch) => ({
   [`money:${HOST}`]: { enabled: true, style: 'mask', bare: false, blur: 6, excludes: [], types: ['money'], custom: [], ...patch },
 });
 
-module.exports = { test, expect, HOST, dataConfig, launchReloadable };
+module.exports = { test, expect, HOST, EMBED_HOST, dataConfig, launchReloadable };
