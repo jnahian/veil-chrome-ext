@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-04
+
+### Added
+
+- The element picker now works inside iframes, including iframes from other sites. Hide, blur and text rules made inside an iframe apply only in that iframe, and the popup lists them with the rules for the page around it.
+
+### Changed
+
+- Sensitive data hiding now also covers iframes, with the settings of the page around them.
+
 ## [1.0.4] - 2026-09-20
 
 ### Changed
@@ -54,7 +64,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Pausing Veil now also stops sensitive data hiding.
 - After a Veil reload, popup controls now keep working in tabs that were already open.
 
-[Unreleased]: https://github.com/jnahian/veil-chrome-ext/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/jnahian/veil-chrome-ext/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jnahian/veil-chrome-ext/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/jnahian/veil-chrome-ext/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/jnahian/veil-chrome-ext/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/jnahian/veil-chrome-ext/compare/v1.0.1...v1.0.2
