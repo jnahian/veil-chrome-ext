@@ -2,7 +2,10 @@ node_modules/
 test-results/
 playwright-report/
 dist/
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/release/
 brag-output*/
 store/demo/
 .DS_Store
