@@ -51,9 +51,9 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   // Frames can't read the top page's address, so they ask for it here.
   if (msg?.type === 'veil:topUrl') reply(sender.tab?.url);
-  // A frame stopped its picker, so the other frames stop theirs.
-  if (msg?.type === 'veil:stopPick' && sender.tab?.id != null) {
-    chrome.tabs.sendMessage(sender.tab.id, { type: 'veil:stopPick' }).catch(() => {});
+  // Pass on to every frame: a stopped picker, or in-app navigation in the top page.
+  if ((msg?.type === 'veil:stopPick' || msg?.type === 'veil:navigated') && sender.tab?.id != null) {
+    chrome.tabs.sendMessage(sender.tab.id, msg).catch(() => {});
   }
   if (msg?.type === 'veil:count' && sender.tab?.id != null) {
     const tabId = sender.tab.id;
