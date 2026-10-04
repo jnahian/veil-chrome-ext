@@ -46,4 +46,4 @@ If this policy changes, the new version is published at this address, with a new
 
 ## Contact
 
-For questions about this policy, open an issue at <https://github.com/jnahian/veil-chrome-ext/issues>.
+For questions about this policy, open an issue at <https://github.com/jnahian/veil-chrome-ext/issues> or send an email from the [support page](https://veil-ce.jnahian.me/support/).

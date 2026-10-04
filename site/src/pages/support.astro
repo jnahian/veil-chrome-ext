@@ -1,0 +1,114 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { REPO, SUPPORT_EMAIL, base } from '../links';
+import manifest from '../../../extension/manifest.json';
+
+const topics = ['Question', 'Bug report', 'Feature request', 'Other'];
+
+const eyebrow = 'font-mono text-sm font-medium tracking-wide text-brand uppercase';
+const label = 'text-[15px] font-semibold text-ink';
+const field =
+  'mt-2 block w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-mask focus:border-brand focus:outline-3 focus:outline-brand/20';
+const primary =
+  'inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-deep focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-brand motion-reduce:transition-none';
+const ghost =
+  'inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-line bg-white px-4 py-2 text-[15px] font-semibold text-ink transition-colors hover:border-ink focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-brand motion-reduce:transition-none';
+const link = 'font-semibold text-brand underline underline-offset-3 hover:text-brand-deep';
+---
+
+<Layout title="Support: Veil" description="Get help with Veil. Send an email to the developer, report a bug on GitHub, or report a security problem privately.">
+  <SiteHeader />
+
+  <main id="main" class="mx-auto grid max-w-7xl gap-12 px-4 py-12 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16 lg:px-8">
+    <div class="min-w-0 max-w-2xl">
+      <p class={eyebrow}>Support</p>
+      <h1 class="mt-3 text-[clamp(2.5rem,6vw,3.5rem)] leading-none font-extrabold tracking-[-0.035em]">Get help with Veil</h1>
+      <p class="mt-5 text-lg leading-relaxed text-pretty text-slate-ink">
+        Write your message below and click Open in email. Your email app opens with the message filled in, and you
+        send it from there. This page does not send or store anything.
+      </p>
+
+      <form id="support-form" class="mt-10 flex flex-col gap-6" data-email={SUPPORT_EMAIL}>
+        <div>
+          <label for="topic" class={label}>Topic</label>
+          <select id="topic" name="topic" class={field}>
+            {topics.map((t) => <option>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label for="subject" class={label}>Subject</label>
+          <input id="subject" name="subject" type="text" required maxlength="120" class={field} placeholder="Blur does not work on a page" />
+        </div>
+        <div>
+          <label for="message" class={label}>Message</label>
+          <textarea
+            id="message"
+            name="message"
+            required
+            rows="8"
+            class={field}
+            placeholder="What happened, what you expected, and the steps to make it happen again."></textarea>
+          <p class="mt-2 text-sm text-slate-ink">Do not include passwords, API keys or other secrets.</p>
+        </div>
+        <div>
+          <label for="version" class={label}>Veil version <span class="font-normal text-slate-ink">(optional)</span></label>
+          <input id="version" name="version" type="text" maxlength="20" class={field} placeholder={manifest.version} />
+          <p class="mt-2 text-sm text-slate-ink">Find it on the <span class="font-mono">chrome://extensions</span> page, on the Veil card.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <button type="submit" class={primary}>Open in email</button>
+          <p class="text-sm text-slate-ink">Nothing opens? Copy the address on this page and send your message from any email account.</p>
+        </div>
+      </form>
+    </div>
+
+    <aside class="flex flex-col gap-6 lg:pt-16">
+      <section class="rounded-2xl border border-line bg-white p-6">
+        <h2 class="text-lg font-bold">Email address</h2>
+        <p class="mt-2 font-mono text-[15px] break-all text-ink">
+          <a href={`mailto:${SUPPORT_EMAIL}`} class="hover:text-brand">{SUPPORT_EMAIL}</a>
+        </p>
+        <button type="button" id="copy-email" class:list={[ghost, 'mt-4']} data-email={SUPPORT_EMAIL}>Copy address</button>
+        <p id="copy-status" class="mt-2 text-sm text-slate-ink" role="status"></p>
+      </section>
+      <section class="rounded-2xl border border-line bg-white p-6">
+        <h2 class="text-lg font-bold">Other ways to get help</h2>
+        <ul class="mt-3 flex flex-col gap-3 text-[15px] leading-relaxed text-slate-ink">
+          <li>Read the <a href={`${base}/docs/`} class={link}>documentation</a> and the <a href={`${base}/#faq`} class={link}>FAQ</a>.</li>
+          <li>Report a bug or ask for a feature in <a href={`${REPO}/issues`} target="_blank" rel="noopener" class={link}>GitHub Issues</a>.</li>
+          <li>
+            Report a security problem privately from the <a href={`${REPO}/security`} target="_blank" rel="noopener" class={link}>Security tab</a>.
+            Do not send it in a public issue.
+          </li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+
+  <SiteFooter />
+</Layout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#support-form')!;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const value = (name: string) => String(data.get(name) ?? '').trim();
+    const subject = `[Veil] ${value('topic')}: ${value('subject')}`;
+    const body = [value('message'), '', '---', `Veil version: ${value('version') || 'unknown'}`, `Browser: ${navigator.userAgent}`].join('\n');
+    window.location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+
+  const copy = document.querySelector<HTMLButtonElement>('#copy-email')!;
+  const status = document.querySelector('#copy-status')!;
+  copy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(copy.dataset.email!);
+      status.textContent = 'Copied.';
+    } catch {
+      status.textContent = 'Could not copy. Select the address and copy it.';
+    }
+  });
+</script>

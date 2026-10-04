@@ -16,6 +16,7 @@ You install Veil from the Chrome Web Store. It is free, with no account.
 - [Documentation](https://veil-ce.jnahian.me/docs/): How to use every feature, the detected types, styles, shortcuts and known limits
 - [Privacy policy](https://veil-ce.jnahian.me/privacy/): What Veil stores and what it does not send
 - [Changelog](https://veil-ce.jnahian.me/changelog/): Changes in each version
+- [Support](https://veil-ce.jnahian.me/support/): Email the developer, report a bug or a security problem
 
 ## Source and downloads
 
