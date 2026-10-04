@@ -127,7 +127,7 @@ To change them, open `chrome://extensions/shortcuts`.
 ## Known limits
 
 - **Veil hides data on screen only.** The page's own scripts can still read the original data, including text you replaced.
-- **Veil cannot reach some content:** iframes, charts drawn on a `<canvas>`, images, other sites' shadow DOM components, and text with a gradient fill.
+- **Veil cannot reach some content:** charts drawn on a `<canvas>`, images, other sites' shadow DOM components, blank or `srcdoc` iframes that the page fills in itself, and text with a gradient fill.
 - **Numbers without a currency** are not caught unless you turn on the plain-number setting.
 - **Rules can break when a site changes.** A redesign can make a selector stop matching. Veil also stores the start of the element's text as a fallback, which recovers many of these cases, but not elements without text, such as images.
 - **Lists that reorder can misfire.** A rule for "the 2nd card" may land on a different item when the order changes.

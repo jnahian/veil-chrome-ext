@@ -109,6 +109,7 @@ You can change shortcuts at `chrome://extensions/shortcuts`.
 ## How it works
 
 - Rules are stored in `chrome.storage.local`, grouped by hostname. Page-scoped rules match on origin + path and ignore the query string and hash.
+- Veil runs in every frame of a page. Rules made inside an iframe are stored with the rules of the top-level page, and record the iframe's address so they apply only there.
 - Blur and hide are CSS injected at `document_start`, which avoids a flash of the original content in most cases.
 - Text replacement runs in JavaScript. A MutationObserver re-applies it when the page re-renders (React, Vue and similar frameworks), and it also handles in-app navigation on single-page sites.
 - Selectors prefer, in order:
@@ -123,7 +124,7 @@ You can change shortcuts at `chrome://extensions/shortcuts`.
 - **Lists that reorder can misfire.** A selector like "the 2nd card" may land on a different item when the list order changes.
 - **Replaced text is visual only.** The original can still reach the site's own scripts, and it can reappear briefly before Veil re-applies. Before you share your screen, open the pages you plan to show so Veil has already covered them.
 - **Replacing text on framework-rendered elements can occasionally break that part of the page**, because the framework expects the nodes it created. If this happens, delete the rule, or choose a smaller element that contains only text.
-- **Iframes are not supported.** Veil works on the top-level page only.
+- **Some iframes are not supported.** Veil works inside iframes that load their own address, but not inside blank or `srcdoc` iframes that the page fills in itself.
 - **Some pages are off limits.** Chrome blocks extensions on `chrome://` pages and the Web Store.
 - **Permissions are broad.** Veil needs access to all http(s) sites so it can re-apply rules automatically. It makes no network requests, and all data stays on your machine.
 

@@ -48,7 +48,7 @@ PRIVATE BY DESIGN
 Veil makes no network requests, and has no analytics and no remote code. Your rules stay in your browser. You can export them to a JSON file and import them again.
 
 LIMITS
-Veil hides data visually only. The page's own scripts can still read it. Veil does not work inside iframes, canvas charts or images.
+Veil hides data visually only. The page's own scripts can still read it. Veil does not work inside canvas charts or images.
 
 Website: https://veil-ce.jnahian.me
 Source code (MIT License): https://github.com/jnahian/veil-chrome-ext
@@ -84,7 +84,7 @@ Veil hides, blurs or replaces content on the web pages that a user visits, so th
 | `storage` | Saves the user's rules and sensitive data configuration on the device, so that Veil can apply them again on every visit. |
 | `scripting` | After an install or update, starts Veil in the tabs that are already open. Without this, those tabs need a reload before Veil works. |
 | `contextMenus` | Adds the "Veil this element" item to the right-click menu. |
-| Host permissions (`http://*/*`, `https://*/*`) | The user can create rules and turn on sensitive data hiding for any site. Veil must apply them while each page loads, before the content shows, so the content script runs on all http and https pages. |
+| Host permissions (`http://*/*`, `https://*/*`) | The user can create rules and turn on sensitive data hiding for any site. Veil must apply them while each page loads, before the content shows, so the content script runs on all http and https pages, including the iframes inside them. |
 
 ### Remote code
 
