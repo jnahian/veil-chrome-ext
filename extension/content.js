@@ -8,7 +8,14 @@
   if (window.__veilAlive?.()) return;
   document.dispatchEvent(new Event('veil:takeover'));
 
-  const HOST = location.hostname;
+  // Inside an iframe, rules and settings belong to the top page's site, so the
+  // popup lists them. Rules made in a frame record that frame's address.
+  const IN_FRAME = window !== top;
+  let HOST = location.hostname;
+  if (IN_FRAME) {
+    try { HOST = new URL(location.ancestorOrigins[location.ancestorOrigins.length - 1]).hostname; } catch { return; }
+  }
+  const FRAME = IN_FRAME ? location.origin + location.pathname : undefined;
   const KEY = `rules:${HOST}`;
   const ATTR = 'data-veil';
   const UI_ID = 'veil-ui-host';
@@ -18,13 +25,15 @@
   let defaultScope = 'page';
   let lastHref = location.href;
   let lastContextTarget = null;
+  let topPage = ''; // top page's address, asked from the background when in a frame
+  const setTopPage = (url) => { const u = new URL(url); topPage = u.origin + u.pathname; };
 
   // ruleId -> { el, original, lastTC, text } for text replacements
   const textApplied = new Map();
 
   const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
   const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-5);
-  const pageKey = () => location.origin + location.pathname;
+  const pageKey = () => (IN_FRAME ? topPage : location.origin + location.pathname);
   const alive = () => {
     try { return !!chrome.runtime?.id; } catch { return false; }
   };
@@ -126,10 +135,15 @@
     if (!styleEl.isConnected) parent.appendChild(styleEl);
   }
 
-  function activeRules() {
+  // Rules for this page in any frame.
+  function pageRules() {
     if (paused) return [];
     const pk = pageKey();
     return rules.filter((r) => r.enabled !== false && (r.scope === 'site' || r.page === pk));
+  }
+
+  function activeRules() {
+    return pageRules().filter((r) => r.frame === FRAME);
   }
 
   function validSelector(sel) {
@@ -156,8 +170,8 @@
     ensureStyles();
     const act = activeRules();
     styleEl.textContent = act.filter((r) => r.action !== 'text').map(ruleCSS).join('\n');
-    if (alive()) {
-      try { chrome.runtime.sendMessage({ type: 'veil:count', n: act.length }).catch(() => {}); } catch {}
+    if (!IN_FRAME && alive()) {
+      try { chrome.runtime.sendMessage({ type: 'veil:count', n: pageRules().length }).catch(() => {}); } catch {}
     }
   }
 
@@ -253,6 +267,10 @@
       if (location.href !== lastHref) {
         lastHref = location.href;
         renderCSS();
+        // Frames use the top page's address for page rules.
+        if (!IN_FRAME && alive()) {
+          try { chrome.runtime.sendMessage({ type: 'veil:navigated', url: location.href }).catch(() => {}); } catch {}
+        }
       } else if (!styleEl || !styleEl.isConnected) {
         ensureStyles();
       }
@@ -295,7 +313,8 @@
     kbd { font: inherit; font-size: 11px; padding: 1px 5px; border-radius: 4px; background: #fff;
       border: 1px solid #C9CFDC; color: #1E2340; }
 
-    .panel { position: fixed; pointer-events: auto; width: 292px; border-radius: 16px; padding: 12px; }
+    .panel { position: fixed; pointer-events: auto; width: min(292px, calc(100vw - 20px)); max-height: calc(100vh - 20px);
+      overflow: auto; border-radius: 16px; padding: 12px; }
     .head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .head .title { font-weight: 650; font-size: 14px; }
     .head .el { flex: 1; min-width: 0; color: #6A7190; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -470,17 +489,23 @@
     pointerEl = null;
     downStack = [];
     document.documentElement.classList.add('veil-picking');
-    showHint('Click an element to select it', '<kbd>↑</kbd> <kbd>↓</kbd> parent or child, <kbd>Enter</kbd> select, <kbd>Esc</kbd> cancel');
+    if (!IN_FRAME) showHint('Click an element to select it', '<kbd>↑</kbd> <kbd>↓</kbd> parent or child, <kbd>Enter</kbd> select, <kbd>Esc</kbd> cancel');
     addEventListener('mousemove', onPickMove, true);
+    addEventListener('mouseout', onPickOut, true);
     for (const t of BLOCKED) addEventListener(t, onPickBlock, { capture: true, passive: false });
     addEventListener('keydown', onPickKey, true);
   }
 
-  function stopPicker() {
+  // Every frame runs its own picker, so stopping one stops the others too.
+  function stopPicker(relay = true) {
     if (!picking) return;
     picking = false;
+    if (relay && alive()) {
+      try { chrome.runtime.sendMessage({ type: 'veil:stopPick' }).catch(() => {}); } catch {}
+    }
     document.documentElement.classList.remove('veil-picking');
     removeEventListener('mousemove', onPickMove, true);
+    removeEventListener('mouseout', onPickOut, true);
     for (const t of BLOCKED) removeEventListener(t, onPickBlock, true);
     removeEventListener('keydown', onPickKey, true);
     $('.hint').hidden = true;
@@ -492,9 +517,23 @@
     const el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el === host || el === document.documentElement || el === pointerEl) return;
     pointerEl = el;
+    // The frame's own picker highlights what is inside it.
+    if (el.tagName === 'IFRAME' || el.tagName === 'FRAME') {
+      hovered = null;
+      hideBox();
+      return;
+    }
     hovered = el;
     downStack = [];
     drawBox(el);
+  }
+
+  // The pointer left this frame for another one.
+  function onPickOut(e) {
+    if (e.relatedTarget) return;
+    hovered = null;
+    pointerEl = null;
+    hideBox();
   }
 
   function onPickBlock(e) {
@@ -688,6 +727,7 @@
       label: describe(el),
       scope: defaultScope,
       page: pageKey(),
+      frame: FRAME,
       enabled: true,
       createdAt: Date.now(),
     };
@@ -800,7 +840,7 @@
     let i = list.findIndex((r) => r.id === rule.id);
     if (i < 0) {
       i = list.findIndex((r) =>
-        r.selector === rule.selector && r.action === rule.action && r.scope === rule.scope &&
+        r.selector === rule.selector && r.action === rule.action && r.scope === rule.scope && r.frame === rule.frame &&
         (r.scope === 'site' || r.page === rule.page));
     }
     if (i >= 0) {
@@ -878,7 +918,11 @@
   }
 
   function buildMatchers() {
-    const ok = money.excludes.filter(validSelector);
+    // Exclusions made in a frame are { selector, frame }; plain strings belong to the top page.
+    const ok = money.excludes
+      .filter((x) => (typeof x === 'string' ? !IN_FRAME : x.frame === FRAME))
+      .map((x) => x.selector ?? x)
+      .filter(validSelector);
     skipSel = [BASE_SKIP, ...ok].join(',');
     matcher = VeilDetect.compile(money);
     codeMatcher = VeilDetect.compile({ types: money.types.filter((t) => t === 'key') });
@@ -1133,9 +1177,10 @@ input[${MATTR}]{${input}}`;
 
   async function keepAmountVisible(el) {
     const sel = buildSelector(el);
+    const entry = IN_FRAME ? { selector: sel, frame: FRAME } : sel;
     const cur = normalizeMoney((await chrome.storage.local.get(MKEY))[MKEY]);
     const before = cur.excludes.slice();
-    if (!cur.excludes.includes(sel)) cur.excludes.push(sel);
+    if (!cur.excludes.some((x) => JSON.stringify(x) === JSON.stringify(entry))) cur.excludes.push(entry);
     await chrome.storage.local.set({ [MKEY]: cur });
     toast('This will always stay visible', async () => {
       const now = normalizeMoney((await chrome.storage.local.get(MKEY))[MKEY]);
@@ -1164,9 +1209,20 @@ input[${MATTR}]{${input}}`;
         else startPicker();
         reply(true);
         break;
-      case 'veil:locate':
-        reply(locate(msg.id));
+      case 'veil:stopPick':
+        stopPicker(false);
         break;
+      case 'veil:navigated':
+        if (IN_FRAME) { setTopPage(msg.url); applyAll(); }
+        break;
+      case 'veil:locate': {
+        // Only the frame that owns the rule answers. The top frame answers
+        // last, in case no frame on this page owns it.
+        const r = rules.find((x) => x.id === msg.id);
+        if (!r || r.frame === FRAME) reply(locate(msg.id));
+        else if (!IN_FRAME) { setTimeout(() => reply({ found: false }), 500); return true; }
+        break;
+      }
       case 'veil:moneyReveal':
         toggleMoneyReveal();
         reply(true);
@@ -1194,7 +1250,10 @@ input[${MATTR}]{${input}}`;
     if (dirty) applyAll();
   });
 
-  chrome.storage.local.get([KEY, MKEY, 'paused', 'defaultScope']).then((d) => {
+  Promise.all([
+    chrome.storage.local.get([KEY, MKEY, 'paused', 'defaultScope']),
+    IN_FRAME && chrome.runtime.sendMessage({ type: 'veil:topUrl' }).then(setTopPage).catch(() => {}),
+  ]).then(([d]) => {
     rules = d[KEY] || [];
     paused = !!d.paused;
     defaultScope = d.defaultScope || 'page';

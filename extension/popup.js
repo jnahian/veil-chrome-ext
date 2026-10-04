@@ -35,7 +35,7 @@ async function send(msg) {
   try {
     return await chrome.tabs.sendMessage(tab.id, msg);
   } catch {
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['detect.js', 'content.js'] });
+    await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames: true }, files: ['detect.js', 'content.js'] });
     return chrome.tabs.sendMessage(tab.id, msg);
   }
 }
