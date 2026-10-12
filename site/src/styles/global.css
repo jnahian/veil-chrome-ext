@@ -11,8 +11,8 @@
   --color-brand-deep: #115e59;
   --color-brand-light: #7dd8cc;
   --color-deep: #0b3b37;
-  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: var(--font-schibsted);
+  --font-mono: var(--font-plex-mono);
 }
 
 html {
