@@ -1,0 +1,83 @@
+---
+import { render } from 'astro:content';
+import Doc from '../../layouts/Doc.astro';
+import { getHeadings } from '../../content/docs.md';
+import { getUseCases, rawMarkdown, sourcePath } from '../../useCases';
+import { base } from '../../links';
+
+export async function getStaticPaths() {
+  const all = await getUseCases();
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry, all } }));
+}
+
+const { entry, all } = Astro.props;
+const { title, summary, related } = entry.data;
+const { Content } = await render(entry);
+const docs = getHeadings();
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const raw = rawMarkdown(entry, Astro.site!);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: title,
+    description: summary,
+    url,
+    about: { '@type': 'SoftwareApplication', name: 'Veil', applicationCategory: 'BrowserApplication', operatingSystem: 'Chrome' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { name: 'Home', item: new URL(`${base}/`, Astro.site).href },
+      { name: 'Use cases', item: new URL(`${base}/use-cases/`, Astro.site).href },
+      { name: title, item: url },
+    ].map((crumb, i) => ({ '@type': 'ListItem', position: i + 1, ...crumb })),
+  },
+];
+const button =
+  'inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line px-4 py-2 text-[15px] font-semibold text-ink! no-underline! hover:border-ink';
+---
+
+<Doc
+  title={`${title} | Veil`}
+  description={summary}
+  source={sourcePath(entry)}
+  tocLabel="Use cases"
+  links={all.map((e) => ({ href: `${base}/use-cases/${e.id}/`, text: e.data.title }))}
+>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="mb-8 flex flex-wrap items-center gap-x-4 gap-y-3">
+    <nav aria-label="Breadcrumb" class="mr-auto text-[15px] text-slate-ink">
+      <a href={`${base}/use-cases/`} class="hover:text-ink">Use cases</a>
+    </nav>
+    <button type="button" class={button} data-md={raw}>Copy .md</button>
+    <span role="status" class="w-full text-sm text-slate-ink empty:hidden sm:w-auto"></span>
+  </div>
+
+  <Content />
+
+  <h2>Related docs</h2>
+  <ul>
+    {
+      related.map((id) => (
+        <li>
+          <a href={`${base}/docs/#${id}`}>{docs.find((h) => h.slug === id)!.text}</a>
+        </li>
+      ))
+    }
+  </ul>
+</Doc>
+
+<script>
+  const copy = document.querySelector<HTMLButtonElement>('[data-md]')!;
+  const status = document.querySelector('[role=status]')!;
+  copy.addEventListener('click', () => {
+    navigator.clipboard.writeText(copy.dataset.md!).then(
+      () => (status.textContent = 'Copied'),
+      () => (status.textContent = `Could not copy. Open ${location.pathname.replace(/\/$/, '.md')} instead.`),
+    );
+    setTimeout(() => (status.textContent = ''), 3000);
+  });
+</script>

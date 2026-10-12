@@ -1,0 +1,64 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import type { CollectionEntry } from 'astro:content';
+import { getUseCases } from '../../useCases';
+import { base } from '../../links';
+
+const useCases = await getUseCases();
+
+// Lucide icons (ISC License), 24 × 24 stroke paths.
+const icons: Record<CollectionEntry<'useCases'>['data']['icon'], string> = {
+  'monitor-up': '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4M8 21h8M12 13V7m-3 3 3-3 3 3"/>',
+  presentation: '<path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3m4 18 5-5 5 5"/>',
+  video: '<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  bug: '<path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3 3 0 1 1 6 0v1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6m0 0v-9M6.53 9C4.6 8.8 3 7.1 3 5m3 8H2m1 8c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4m-.8 4c2.1.1 3.8 1.9 3.8 4"/>',
+  wallet:
+    '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  radio:
+    '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5M19.1 4.9C23 8.8 23 15.1 19.1 19"/>',
+  type: '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+  'eye-off':
+    '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49M14.084 14.158a3 3 0 0 1-4.242-4.242M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143M2 2l20 20"/>',
+  'whole-word': '<circle cx="7" cy="12" r="3"/><path d="M10 9v6"/><circle cx="17" cy="12" r="3"/><path d="M14 7v8M22 17v1c0 .5-.5 1-1 1H3c-.5 0-1-.5-1-1v-1"/>',
+};
+---
+
+<Layout
+  title="Use cases: Veil"
+  description="Guides to using Veil: hide sensitive data when you share your screen, stream, demo or record, and hide, blur or rewrite any part of a website."
+>
+  <SiteHeader />
+
+  <main id="main" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-20 lg:px-8">
+    <div class="flex max-w-3xl flex-col gap-4">
+      <p class="font-mono text-sm font-medium tracking-wide text-brand uppercase">Use cases</p>
+      <h1 class="text-[clamp(2.5rem,6vw,3.5rem)] leading-none font-extrabold tracking-[-0.035em]">When Veil helps</h1>
+      <p class="text-lg leading-relaxed text-pretty text-slate-ink">
+        Veil hides money, emails, card numbers, API keys and anything you pick on a page, before anyone else sees your screen.
+        Each guide covers one job, step by step.
+      </p>
+    </div>
+    <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+      {
+        useCases.map((u) => (
+          <li>
+            <a
+              href={`${base}/use-cases/${u.id}/`}
+              class="flex h-full flex-col gap-3 rounded-2xl border border-line bg-white p-6 transition-colors hover:border-ink motion-reduce:transition-none"
+            >
+              <span class="flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[u.data.icon]} />
+              </span>
+              <h2 class="text-xl font-bold">{u.data.title}</h2>
+              <p class="leading-relaxed text-slate-ink">{u.data.summary}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+
+  <SiteFooter />
+</Layout>

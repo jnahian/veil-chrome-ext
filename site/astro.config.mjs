@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { satteri } from '@astrojs/markdown-satteri';
+import { pageHref } from './src/mdLinks.ts';
 
 // Opens GitHub links in the Markdown pages (privacy policy, changelog) in a new tab.
 const githubLinksInNewTab = {
@@ -13,6 +14,18 @@ const githubLinksInNewTab = {
       if (!String(node.properties.href).startsWith('https://github.com/')) return;
       ctx.setProperty(node, 'target', '_blank');
       ctx.setProperty(node, 'rel', ['noopener']);
+    },
+  },
+};
+
+// Points the use cases' relative Markdown links at their pages on the site.
+const mdLinksToPages = {
+  name: 'md-links-to-pages',
+  element: {
+    filter: ['a'],
+    visit(node, ctx) {
+      const href = pageHref(String(node.properties.href));
+      if (href) ctx.setProperty(node, 'href', href);
     },
   },
 };
@@ -33,7 +46,7 @@ const hideUnreleased = {
 export default defineConfig({
   site: 'https://veil-ce.jnahian.me',
   integrations: [sitemap()],
-  markdown: { processor: satteri({ hastPlugins: [githubLinksInNewTab, hideUnreleased] }) },
+  markdown: { processor: satteri({ hastPlugins: [githubLinksInNewTab, mdLinksToPages, hideUnreleased] }) },
   vite: {
     plugins: [tailwindcss()],
     // The page imports the store screenshots and icons from the repository root.

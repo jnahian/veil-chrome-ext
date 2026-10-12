@@ -10,25 +10,37 @@ interface Props {
   source: string;
   // Level 2 headings are listed in the sidebar.
   headings?: MarkdownHeading[];
+  // Links to list in the sidebar instead of the headings. Unlike the headings, they also show on small screens, after the page.
+  links?: { href: string; text: string }[];
   tocLabel?: string;
 }
-const { title, description, source, headings = [], tocLabel = 'On this page' } = Astro.props;
-const toc = headings.filter((h) => h.depth === 2);
+const { title, description, source, headings = [], links, tocLabel = 'On this page' } = Astro.props;
+const toc = links ?? headings.filter((h) => h.depth === 2).map((h) => ({ href: `#${h.slug}`, text: h.text }));
 ---
 
 <Layout {title} {description}>
   <SiteHeader />
 
-  <div class="mx-auto flex max-w-7xl gap-16 px-4 py-12 sm:px-6 sm:py-20 lg:px-8">
+  <div class="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-12 sm:px-6 sm:py-20 lg:flex-row lg:gap-16 lg:px-8">
     {
       toc.length > 0 && (
-        <nav aria-label={tocLabel} class="sticky top-28 hidden max-h-[calc(100dvh-8rem)] w-56 shrink-0 self-start overflow-y-auto lg:block">
+        <nav
+          aria-label={tocLabel}
+          class:list={[
+            'order-last shrink-0 self-start lg:sticky lg:top-28 lg:order-none lg:block lg:w-56 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto',
+            !links && 'hidden',
+          ]}
+        >
           <p class="font-mono text-sm font-medium tracking-wide text-brand uppercase">{tocLabel}</p>
           <ul class="mt-4 flex flex-col border-l border-line text-[15px]">
-            {toc.map((h) => (
+            {toc.map((l) => (
               <li>
-                <a href={`#${h.slug}`} class="-ml-px block border-l border-transparent py-1.5 pl-4 text-slate-ink hover:border-ink hover:text-ink">
-                  {h.text}
+                <a
+                  href={l.href}
+                  aria-current={l.href === Astro.url.pathname ? 'page' : undefined}
+                  class="-ml-px block border-l border-transparent py-1.5 pl-4 text-slate-ink hover:border-ink hover:text-ink aria-[current=page]:border-brand aria-[current=page]:font-semibold aria-[current=page]:text-ink"
+                >
+                  {l.text}
                 </a>
               </li>
             ))}
@@ -123,6 +135,11 @@ const toc = headings.filter((h) => h.depth === 2);
     border-bottom: 1px solid var(--color-line);
     text-align: left;
     vertical-align: top;
+  }
+  .doc :global(img) {
+    margin-top: 1.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
   }
   .doc :global(th) {
     color: var(--color-ink);

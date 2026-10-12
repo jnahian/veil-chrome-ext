@@ -52,18 +52,22 @@ const floaters = [
 const moments = [
   {
     title: 'Demoing on a live account',
+    href: `${base}/use-cases/live-demos/`,
     body: 'Show a customer the real dashboard without showing them another customer’s revenue, email or invoice.',
   },
   {
     title: 'Recording a tutorial',
+    href: `${base}/use-cases/screen-recordings/`,
     body: 'Cover the data before you hit record, instead of blurring it frame by frame in the video editor afterwards.',
   },
   {
     title: 'Screenshots for a bug report',
+    href: `${base}/use-cases/bug-report-screenshots/`,
     body: 'Attach a screenshot of the broken page to a public issue without pasting a live API key into it.',
   },
   {
     title: 'Pairing and streaming',
+    href: `${base}/use-cases/screen-sharing/`,
     body: 'Debug in the browser with someone watching. Select keys, IPs and card numbers once, and they stay covered.',
   },
 ];
@@ -339,6 +343,9 @@ const link = 'font-semibold text-brand underline underline-offset-3 hover:text-b
             <li class="flex flex-col gap-3 rounded-2xl border border-line bg-white p-6">
               <h3 class="text-lg font-bold">{m.title}</h3>
               <p class="leading-relaxed text-slate-ink">{m.body}</p>
+              <a href={m.href} class:list={[link, 'mt-auto']}>
+                How Veil helps<span class="sr-only">: {m.title.toLowerCase()}</span>
+              </a>
             </li>
           ))
         }
