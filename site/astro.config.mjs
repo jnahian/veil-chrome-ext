@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { satteri } from '@astrojs/markdown-satteri';
@@ -46,6 +46,29 @@ const hideUnreleased = {
 export default defineConfig({
   site: 'https://veil-ce.jnahian.me',
   integrations: [sitemap()],
+  // Self-hosted at build time, so the first paint does not wait on Google Fonts.
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Schibsted Grotesk',
+      cssVariable: '--font-schibsted',
+      weights: ['400 800'],
+      styles: ['normal'],
+      subsets: ['latin', 'latin-ext'],
+      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'IBM Plex Mono',
+      cssVariable: '--font-plex-mono',
+      weights: [400, 500],
+      styles: ['normal'],
+      subsets: ['latin', 'latin-ext'],
+      fallbacks: ['ui-monospace', 'monospace'],
+    },
+  ],
+  // Saves a render-blocking request for the site's CSS.
+  build: { inlineStylesheets: 'always' },
   markdown: { processor: satteri({ hastPlugins: [githubLinksInNewTab, mdLinksToPages, hideUnreleased] }) },
   vite: {
     plugins: [tailwindcss()],
