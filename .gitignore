@@ -6,6 +6,7 @@ dist/
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/release/
+!.claude/skills/use-cases/
 brag-output*/
 store/demo/
 .DS_Store
