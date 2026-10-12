@@ -1,4 +1,12 @@
-# Veil
+import type { APIRoute } from 'astro';
+import { getUseCases } from '../useCases';
+
+// The index for AI tools, at /llms.txt. Each use case is listed with its Markdown version.
+export const GET: APIRoute = async ({ site }) => {
+  const useCases = (await getUseCases())
+    .map((u) => `- [${u.data.title}](${new URL(`/use-cases/${u.id}.md`, site)}): ${u.data.summary}`)
+    .join('\n');
+  return new Response(`# Veil
 
 > Veil is a free, open-source Chrome extension that hides money, emails, phone numbers, card numbers, IBANs, API keys and IP addresses on any website before you share your screen, record a demo or take a screenshot. It can also hide, blur or rewrite any element that you pick on a page. Veil keeps your rules on your device and makes no network requests.
 
@@ -6,7 +14,7 @@ Veil adds a mask, a blur or a hidden style to each match that it finds on a page
 
 Common uses: demoing a product on a live account, recording tutorials, taking screenshots for bug reports, and screen sharing while pairing or streaming.
 
-Limits: Veil hides data on screen only, and the page's own scripts can still read it. It does not work inside iframes, canvas charts, images or other sites' shadow DOM components, and it cannot mask text with a gradient fill.
+Limits: Veil hides data on screen only, and the page's own scripts can still read it. It cannot reach canvas charts, images, other sites' shadow DOM components or blank iframes that the page fills in itself, and it cannot mask text with a gradient fill.
 
 You install Veil from the Chrome Web Store. It is free, with no account.
 
@@ -14,8 +22,13 @@ You install Veil from the Chrome Web Store. It is free, with no account.
 
 - [Home page](https://veil-ce.jnahian.me/): Features, a live demo, use cases, FAQ and install steps
 - [Documentation](https://veil-ce.jnahian.me/docs/): How to use every feature, the detected types, styles, shortcuts and known limits
+- [Use cases](https://veil-ce.jnahian.me/use-cases/): One guide per job Veil does, listed below
 - [Privacy policy](https://veil-ce.jnahian.me/privacy/): What Veil stores and what it does not send
 - [Changelog](https://veil-ce.jnahian.me/changelog/): Changes in each version
+
+## Use cases
+
+${useCases}
 
 ## Source and downloads
 
@@ -23,3 +36,5 @@ You install Veil from the Chrome Web Store. It is free, with no account.
 - [Chrome Web Store](https://chromewebstore.google.com/detail/veil-hide-blur-rewrite/mmgidjpigbhdkdnmjhcbjhlbfhecddkc): Install Veil
 - [Intro video](https://youtu.be/MSykGjktihY): 23 second narrated overview
 - [Demo video](https://youtu.be/-tR-An6twFQ): Veil in use on a dashboard
+`);
+};
